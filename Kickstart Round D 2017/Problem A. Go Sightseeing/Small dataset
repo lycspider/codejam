@@ -1,0 +1,77 @@
+#include <iostream>
+#include <vector>
+#include <cmath>
+#include <algorithm>
+using namespace std;
+
+int solveProblemA(int N, int Ts, int Tf, vector<int>Si, vector<int>Fi, vector<int>Di);
+int Travel(int i, int start, int N, int Ts, int Tf, vector<int>Si, vector<int>Fi, vector<int>Di, bool sightseeing);
+int ComputeArriveNextTime(int start, int Ts, int Tf, int si, int fi, int di, bool sightseeing);
+
+int main()
+{
+	int T;
+	cin >> T;
+	int  N, Ts, Tf;
+	for (auto case_nu = 1; case_nu <= T; case_nu++){
+		cin >> N >> Ts >> Tf;
+		//the number of cities, the time taken for sightseeing in any city, and the latest time you can arrive in city N.
+		vector<int>  Si(N), Fi(N), Di(N);
+		// the start time, frequency, and duration of buses travelling from city i to city i + 1.
+		for (auto i = 1; i < N; i++){
+			cin >> Si[i] >> Fi[i] >> Di[i];
+		}
+		int ret = solveProblemA(N,Ts,Tf,Si,Fi,Di);
+		if (ret == -1)
+			cout << "Case #" << case_nu << ": IMPOSSIBLE" << endl;
+		else
+			cout << "Case #" << case_nu << ": " << ret << endl;
+
+	}
+	return 0;
+}
+int solveProblemA(int N, int Ts, int Tf, vector<int>Si, vector<int>Fi, vector<int>Di)
+{
+	if (N <=1)return 0;
+	int Tcur = 0,city=0;
+	int maxcities=0,cities=0;
+	cities = Travel(1, 0, N, Ts, Tf, Si, Fi, Di, true);
+	cities = max(cities,Travel(1, 0, N, Ts, Tf, Si, Fi, Di, false));
+	return cities;
+}
+int Travel(int i, int start, int N, int Ts, int Tf, vector<int>Si, vector<int>Fi, vector<int>Di, bool sightseeing)
+{
+	if (i == N)return 0;
+	int arrive_time = ComputeArriveNextTime(start,Ts,Tf,Si[i],Fi[i],Di[i],sightseeing);
+	if (arrive_time == -1)return -1;
+	int cities, isSightseeing, notSightseeing;
+	isSightseeing = Travel(i+1, arrive_time, N, Ts, Tf, Si, Fi, Di, true);
+	notSightseeing = Travel(i+1, arrive_time, N, Ts, Tf, Si, Fi, Di, false);
+	if (isSightseeing >= notSightseeing&&isSightseeing!=-1){
+		return isSightseeing + sightseeing;
+	}
+	else if (isSightseeing < notSightseeing&&notSightseeing != -1){
+		return notSightseeing + sightseeing;
+	}
+	else{
+		return -1;
+	}
+
+}
+
+int ComputeArriveNextTime(int start, int Ts, int Tf, int si, int fi, int di, bool sightseeing)
+{
+	int time = start;
+	if (sightseeing)
+		time += Ts;
+	int arrivetime;
+	if (time <= si)
+		arrivetime = si + di;
+	else{
+		arrivetime = fi*ceil((time - si)*1.0 / fi) + si + di;
+	}
+	if (arrivetime > Tf)
+		return -1;
+	else
+		return arrivetime;
+}
